@@ -38,3 +38,25 @@ def max_drawdown(returns: pd.Series) -> pd.Series:
     previous_peaks = wealth_index.cummax()
     drawdown = (wealth_index - previous_peaks) / previous_peaks
     return drawdown
+
+
+def random_weights(n: int) -> np.ndarray:
+    """
+    produces a vector of n random weights that sum to 1
+    """
+    weights = np.random.rand(n)
+    return weights / np.sum(weights)
+
+
+def random_portfolio_stats(hist_mean: pd.DataFrame, hist_cov: pd.DataFrame, weights: np.matrix) -> tuple[float, float]:
+    """
+    Returns the mean and standard deviation of returns for a random portfolio
+    """
+    mu = weights @ hist_mean.to_numpy() * 252  # annualize the returns
+    sigma = np.sqrt(weights @ hist_cov.to_numpy() @ weights.T) * np.sqrt(252)  # annualize the vol
+
+    # This recursion reduces outliers to keep plots pretty
+    if sigma > 2:
+        return random_portfolio_stats(hist_mean=hist_mean, hist_cov=hist_cov)
+
+    return float(mu), float(sigma)
